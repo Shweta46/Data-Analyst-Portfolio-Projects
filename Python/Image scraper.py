@@ -38,6 +38,8 @@ image_urls = [img.get_attribute('src') for img in image_tags if not img.get_attr
 # stream = True means that we are keeping the connection alive
 for index, url in enumerate(image_urls[:10]):
     response = requests.get(url, stream=True)
+    
+    # requests is much faster than selinium
 
     # wb: write in binary as images are treated as binary in Python
     with open(f'image-{index+1}.jpg', 'wb') as f:
