@@ -749,60 +749,51 @@ where pageview_url = '/billing-2'
 
 -- So, analyze the data from pageview_id 53550, to the date 10th November 2012
 
-drop temporary;
-select pageview_url, count(website_session_id)
+select pageview_url as billing_version_seen, count(website_pageviews.website_session_id) as sessions, count(orders.order_id) as orders,
+count(orders.order_id)/ count(website_pageviews.website_session_id) as billing_to_orders_rt
 from website_pageviews
+left join orders
+on website_pageviews.website_session_id = orders.website_session_id 
 where
-	created_at < '2012-11-10'
-    and website_pageview_id > 53550
+	website_pageviews.created_at < '2012-11-10'
+    and website_pageview_id >= 53550
 	and pageview_url in ('/billing', '/billing-2')
 group by 1
 ;
 
+-- Another way this can be done is by the below method:
 
 drop temporary table if exists bills;
 create temporary table bills
-select pageview_url, website_session_id
+select distinct website_session_id, pageview_url
 from website_pageviews
 where
 	created_at < '2012-11-10'
-    and website_pageview_id > 53550
+    and website_pageview_id >= 53550
 	and pageview_url in ('/billing', '/billing-2')
-group by 1, 2
 order by 2
 ;
 
 select * from bills;
 
-select bills.pageview_url, count(bills.website_session_id),
-count(case when website_pageviews.pageview_url = '/thank-you-for-your-order' then website_pageviews.website_session_id else null end) as orders
+select bills.pageview_url as billing_verison_seen, count(distinct bills.website_session_id) as sessions,
+count(case when website_pageviews.pageview_url = '/thank-you-for-your-order' then bills.website_session_id else null end) as orders,
+count(case when website_pageviews.pageview_url = '/thank-you-for-your-order' then bills.website_session_id else null end)/ count(distinct bills.website_session_id) as billing_to_orders_rt
 from website_pageviews
-right join bills
+inner join bills
 on website_pageviews.website_session_id = bills.website_session_id
-where
-	created_at < '2012-11-10'
-    and website_pageview_id > 53550
-    and website_pageviews.pageview_url in ('/billing', '/billing-2', '/thank-you-for-your-order')
+where website_pageviews.pageview_url in ('/billing', '/billing-2', '/thank-you-for-your-order')
 group by 1
 ;
 
+-- Results:
+-- The billing-2 has more billing to orders CVR than the original billing page.
+-- The client will get to roll this out to all the customers. 
+-- Next steps:
+-- 1. After the roll out of the new version to 100% of traffic, use the data to confirm they have done correctly.
+-- 2. Monitor overall sales performace to see the impact this change produces.
 
 
-select bills.pageview_url, count(bills.website_session_id),
-count(case when website_pageviews.pageview_url = '/thank-you-for-your-order' then website_pageviews.website_session_id else null end) as orders
-from
-(
-select pageview_url, count(website_session_id)
-from website_pageviews
-where
-	created_at < '2012-11-10'
-    and website_pageview_id > 53550
-	and pageview_url in ('/billing', '/billing-2')
-group by 1
-) as count
-right join on
-group by 1
-;
 
 
 
