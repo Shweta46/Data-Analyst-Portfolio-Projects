@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: revenue_cancellations
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+
+      - name: cancellation_amount
+        tests:
+          - not_null
+
+      - name: currency_id
+        tests:
+          - not_null
+
+      - name: country_id
+        tests:
+          - not_null
+      
+      - name: created_at_date
+        tests:
+          - not_null
+      
+      - name: cancellation_date
+        tests:
+          - not_null
+  
+  - name: negative_revenue_cancellations
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+
+      - name: cancellation_amount
+        tests:
+          - not_null
+
+      - name: currency_id
+        tests:
+          - not_null
+
+      - name: country_id
+        tests:
+          - not_null
+      
+      - name: created_at_date
+        tests:
+          - not_null
+      
+      - name: cancellation_date
+        tests:
+          - not_null
